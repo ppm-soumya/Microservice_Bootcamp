@@ -1,0 +1,2 @@
+#ignore .sum files
+*.sum
