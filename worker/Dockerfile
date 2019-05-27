@@ -7,7 +7,7 @@ WORKDIR /app
 RUN go get -u github.com/gorilla/mux
 RUN go get github.com/mediocregopher/radix.v2
 RUN go get -u github.com/go-redis/redis
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+RUN make build_linux
 
 # Second Stage=====================
 FROM alpine

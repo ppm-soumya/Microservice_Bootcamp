@@ -5,7 +5,7 @@ RUN mkdir /app
 ADD . /app/
 WORKDIR /app
 RUN go get -u github.com/gorilla/mux
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+RUN make build_linux
 
 # Second Stage=====================
 FROM alpine
