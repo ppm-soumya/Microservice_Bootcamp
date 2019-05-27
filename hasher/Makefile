@@ -11,9 +11,9 @@ build_linux :
 	@echo "Build ended successfully"
 
 build :
-		@echo "Started Building ..."
-		@echo "CommitId : "${COMMIT}
-		@echo "Branch : "${BRANCH}
-		@echo "BuildPath :"${BUILDPATH}
-		go build -o app .
-		@echo "Build ended successfully"
+	@echo "Started Building ..."
+	@echo "CommitId : "${COMMIT}
+	@echo "Branch : "${BRANCH}
+	@echo "BuildPath :"${BUILDPATH}
+	go build -o app .
+	@echo "Build ended successfully"
