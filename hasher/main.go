@@ -5,89 +5,77 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "net/http"
-    //"crypto/sha1"
-    "encoding/hex"
-    "github.com/gorilla/mux"
-    "encoding/json"
-    "io/ioutil"
-    "crypto/sha256"
+	"fmt"
+	"log"
+	"net/http"
+	//"crypto/sha1"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"io/ioutil"
+
+	"github.com/gorilla/mux"
 )
 
 type test_struct struct {
 	Test string
 }
 
-func hasher(token_value string) string {
+//! This function will generate the hash value
+//!  and will return the hash as string
+func Hasher(token_value string) string {
+	h2 := sha256.New()
+	h2.Write([]byte(token_value))
+	fmt.Println("hashed value ==", h2.Sum(nil))
+	sha1_hash := hex.EncodeToString(h2.Sum(nil))
 
-    //s := "sha1 this string"
-    //h := sha1.New()
-    //h.Write([]byte(token_value))
-    //sha1_hash := hex.EncodeToString(h.Sum(nil))
-
-    h2 := sha256.New()
-	  h2.Write([]byte(token_value))
-	  fmt.Println("hashed value ==", h2.Sum(nil))
-    sha1_hash := hex.EncodeToString(h2.Sum(nil))
-
-    fmt.Println(token_value, sha1_hash)
-    return sha1_hash
+	fmt.Println(token_value, sha1_hash)
+	return sha1_hash
 }
 
-func returnHashedNumber(w http.ResponseWriter, r *http.Request){
-  fmt.Println("Method: ", r.Method)
-    if r.Method!="POST"{
-        fmt.Println("hasher called with Method other than POST")
-        return
-    }
+//! This function will receive the request and will publish the
+//! hash value to the redis channel named "hashChannel"
+func ReturnHashedNumber(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Method: ", r.Method)
+	if r.Method != "POST" {
+		fmt.Println("hasher called with Method other than POST")
+		return
+	}
 
-    fmt.Println("hasher called with Method POST")
-    data, _ := ioutil.ReadAll(r.Body)
-    fmt.Println(string(data))
-    //var dat map[string]interface{}
-    dat := make(map[string]string)
-    err := json.Unmarshal(data, &dat);
-    if err != nil {
-      fmt.Println("error_46 : ",err)
-      panic(err)
-    }
-    fmt.Println("Unmarshal done", dat["token"])
+	fmt.Println("hasher called with Method POST")
+	data, _ := ioutil.ReadAll(r.Body)
+	fmt.Println(string(data))
+	dat := make(map[string]string)
+	err := json.Unmarshal(data, &dat)
+	if err != nil {
+		fmt.Println("error_46 : ", err)
+		panic(err)
+	}
+	fmt.Println("Unmarshal done", dat["token"])
 
-    /*decoder := json.NewDecoder(r.Body)
-    var t test_struct
-    err = decoder.Decode(&t)
-    if err != nil {
-      fmt.Println("ERR ",err)
-      panic(err)
-
-    }*/
-    //fmt.Println(t.Test)
-
-    fmt.Println("Hasher Input : ", dat["token"])//t.Test)
-    sha1_hash := hasher(dat["token"])//t.Test)
-    m := make(map[string]string)
-    m["hash"]=sha1_hash
-    js, err := json.Marshal(m)
-      if err != nil {
-          fmt.Println("Error Marshaling")
-          http.Error(w, err.Error(), http.StatusInternalServerError)
-          return
-      }
-    fmt.Println("JSON Output ",js)
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(js)
+	fmt.Println("Hasher Input : ", dat["token"])
+	sha1_hash := Hasher(dat["token"])
+	m := make(map[string]string)
+	m["hash"] = sha1_hash
+	js, err := json.Marshal(m)
+	if err != nil {
+		fmt.Println("Error Marshaling")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("JSON Output ", js)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
-func handleRequests() {
-
-    myRouter := mux.NewRouter().StrictSlash(true)
-    myRouter.HandleFunc("/hasher", returnHashedNumber).Methods("POST")
-    log.Fatal(http.ListenAndServe(":10001", myRouter))
+//! will only accept POST request
+func HandleRequests() {
+	myRouter := mux.NewRouter().StrictSlash(true)
+	myRouter.HandleFunc("/hasher", ReturnHashedNumber).Methods("POST")
+	log.Fatal(http.ListenAndServe(":10001", myRouter))
 }
 
 func main() {
-    fmt.Println("Rest API v2.0 - Mux Routers")
-    handleRequests()
+	fmt.Println("Hasher Service Running...")
+	HandleRequests()
 }

@@ -27,29 +27,12 @@
        var total = 0;
 
        socket.on('redisPublishEvent', function(data){
-         /*filledArray[0] = data.data1;
-         filledArray[1] = data.data2;
-         filledArray[2] = data.data3;
-         filledArray[3] = data.data4;
-         new Chartist.Line('#chart', {
-           labels: [1, 2, 3, 4],
-           series: [filledArray]
-         }, {
-           low: 0,
-           fullWidth: true,
-           showArea: true
-         });*/
          //filledArray[test%4] = parseInt(data.description) || 0;//data.data4;
-         filledArray[test%4] = parseInt(data.description) + total;
+         filledArray[2] = filledArray[3]
+         filledArray[1] = filledArray[2]
+         filledArray[0] = filledArray[1];
+         filledArray[3] = parseInt(data.description) + total;
          total = total + parseInt(data.description);
-         //document.write(parseInt(filledArray[0]),'<br />')
-         //document.write(parseInt(filledArray[1]),'<br />')
-         //document.write(parseInt(filledArray[2]),'<br />')
-         //document.write(parseInt(filledArray[3]),'<br />')
-         //filledArray[0] = data.data1;
-         //filledArray[1] = data.data2;
-         //filledArray[2] = data.data3;
-         //filledArray[3] = data.data4;
          new Chartist.Line('.ct-chart', {
            labels: [1, 2, 3, 4],
            series: [filledArray]
@@ -58,8 +41,6 @@
            fullWidth: true,
            showArea: true
          });
-         //document.write(,'<br />')
-         //document.write(filledArray[test%4]),'<br />')
          test++;
        })
      </script>

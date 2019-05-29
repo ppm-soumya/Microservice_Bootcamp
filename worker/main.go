@@ -9,14 +9,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
-	//"github.com/mediocregopher/radix.v2/redis"
-	"github.com/go-redis/redis"
-	//"log"
 	"strings"
-	//"strconv"
-	//"encoding/hex"
-	//"encoding/json"
+	"time"
+
+	"github.com/go-redis/redis"
 )
 
 type test_struct struct {
@@ -41,16 +37,7 @@ func oneWay(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("pong : ", pong)
 	if err != nil {
 		fmt.Println("error : ", err)
-		//log.Fatal(err)
 	}
-
-	/*conn, err := redis.Dial("tcp", "localhost:6379")
-	if err != nil {
-			fmt.Println("redis error localip:",err)
-			log.Fatal(err)
-	}*/
-	// Importantly, use defer to ensure the connection is always properly
-	// closed before exiting the main() function.
 	defer conn.Close()
 
 	f = func() {
@@ -62,26 +49,9 @@ func oneWay(w http.ResponseWriter, r *http.Request) {
 		} else {
 			data, _ := ioutil.ReadAll(response.Body)
 			fmt.Println(string(data))
-			/*decoder := json.NewDecoder(data)
-			var t test_struct
-			err := decoder.Decode(&t)
-			if err != nil {
-				fmt.Println("ERR:", err)
-				panic(err)
-			}
-			fmt.Println("STG ", t)
-			fmt.Println(t.Test)*/
-			//jsonValue, err := json.Marshal(t.Test)
-			// if err!=nil {
-			// 		fmt.Println("error in JSON conversion")
-			// } else {
-			//fmt.Println("Calling HASHER with...", jsonValue)
 
-			// response, err = http.Post("http://localhost:10001/hasher/", "application/json", bytes.NewBuffer(data))
 			fmt.Println("Calling Hasher... Data : ", data)
 			url := "http://172.25.16.126:10001/hasher"
-			//fmt.Println("URL:>", url)
-			// var jsonStr = data//[]byte(`{"title":"Buy cheese and bread for breakfast."}`)
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 			req.Header.Set("Content-Type", "application/json")
 
@@ -98,8 +68,6 @@ func oneWay(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("DATA: ", string(data))
 
 				//! Unmarshaling the data obtained from hasher into a map,
-				//! doing HMSET into redis with the dat["hash"] values
-				//! doing HMGET to check whether entered into redis database correctly or not
 				dat := make(map[string]string)
 				err = json.Unmarshal(data, &dat)
 				if err != nil {
@@ -107,20 +75,13 @@ func oneWay(w http.ResponseWriter, r *http.Request) {
 					panic(err)
 				}
 				fmt.Println("Unmarshal done", dat["hash"])
-				/*resp := conn.Cmd("HMSET", "hashtable", "hash", dat["hash"])
-				// Check the Err field of the *Resp object for any errors.
-				if resp.Err != nil {
-					  fmt.Println("HMSET error", resp.Err)
-						//log.Fatal(resp.Err)
-				}*/
+				val := strings.HasPrefix(dat["hash"], "0")
 
-				val := strings.HasPrefix(dat["hash"], "0") // true
+				//! publishing 1 if the hash is "Lucky Hash", else 0
 				fmt.Println("Lucky Hash : ", val)
 				fmt.Println("Hash : ", dat["hash"])
-
 				pubsub := conn.Subscribe("mychannel1")
 				defer pubsub.Close()
-				//resp := conn.Publish("hashChannel", dat["hash"]).Err()
 				resp := conn.Publish("hashChannel", val).Err()
 				if resp != nil {
 					fmt.Println(resp)
@@ -131,12 +92,8 @@ func oneWay(w http.ResponseWriter, r *http.Request) {
 
 		t = time.AfterFunc(time.Duration(1)*time.Second, f)
 	}
-
 	t = time.AfterFunc(time.Duration(1)*time.Second, f)
-
 	defer t.Stop()
-
-	//simulate doing stuff
 	time.Sleep(time.Minute)
 }
 
